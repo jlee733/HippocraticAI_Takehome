@@ -28,7 +28,7 @@ This program requires [Docker](https://www.docker.com/products/docker-desktop/) 
 
 ## Block Diagram
 
-```
+
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           BEDTIME STORY GENERATOR                           │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -115,7 +115,7 @@ This program requires [Docker](https://www.docker.com/products/docker-desktop/) 
 
 ## Data Flow Summary
 
-```
+
 ┌──────────┐    ┌─────────┐    ┌─────────────┐    ┌───────┐    ┌────────┐
 │   USER   │───▶│ PLANNER │───▶│ STORYTELLER │───▶│ JUDGE │───▶│ OUTPUT │
 └──────────┘    └─────────┘    └─────────────┘    └───────┘    └────────┘
