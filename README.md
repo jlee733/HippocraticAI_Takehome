@@ -28,7 +28,7 @@ This program requires [Docker](https://www.docker.com/products/docker-desktop/) 
 
 ## Block Diagram
 
-'''
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           BEDTIME STORY GENERATOR                           │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -111,11 +111,11 @@ This program requires [Docker](https://www.docker.com/products/docker-desktop/) 
                           │                       │
                           └───────────────────────┘
                                  Back to Storyteller
-
+```
 
 ## Data Flow Summary
 
-'''
+```text
 ┌──────────┐    ┌─────────┐    ┌─────────────┐    ┌───────┐    ┌────────┐
 │   USER   │───▶│ PLANNER │───▶│ STORYTELLER │───▶│ JUDGE │───▶│ OUTPUT │
 └──────────┘    └─────────┘    └─────────────┘    └───────┘    └────────┘
@@ -125,7 +125,7 @@ This program requires [Docker](https://www.docker.com/products/docker-desktop/) 
                                     │   Feedback    │
                                     └───────────────┘
                                       (if score < 7)
-
+```
 
 ## Component Responsibilities
 
