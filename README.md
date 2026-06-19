@@ -6,7 +6,7 @@ This bedtime story generator app uses a multi-agent LLM pipeline to create high-
 This program requires [Docker](https://www.docker.com/products/docker-desktop/) with Docker Compose.
 
 ## Instructions
-1. Set your OpenAI key (optional, only needed for gpt-3.5-turbo):
+1. Set your OpenAI key:
    ```bash
    export OPENAI_API_KEY=<your_openai_api_key>
    ```
@@ -125,7 +125,7 @@ This program requires [Docker](https://www.docker.com/products/docker-desktop/) 
                                     │   Feedback    │
                                     └───────────────┘
                                       (if score < 7)
-```
+
 
 ## Component Responsibilities
 
