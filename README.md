@@ -1,50 +1,158 @@
 # Hippocratic AI Coding Assignment
-Welcome to the [Hippocratic AI](https://www.hippocraticai.com) coding assignment
+
+This bedtime story generator app uses a multi-agent LLM pipeline to create high-quality, age-appropriate stories for children ages 5-10.
+
+## Requirements
+This program requires [Docker](https://www.docker.com/products/docker-desktop/) with Docker Compose.
 
 ## Instructions
-The attached code is a simple python script skeleton. Your goal is to take any simple bedtime story request and use prompting to tell a story appropriate for ages 5 to 10.
-- Incorporate a LLM judge to improve the quality of the story
-- Provide a block diagram of the system you create that illustrates the flow of the prompts and the interaction between judge, storyteller, user, and any other components you add
-- Do not change the openAI model that is being used. 
-- Please use your own openAI key, but do not include it in your final submission.
-- Otherwise, you may change any code you like or add any files
+1. Set your OpenAI key:
+   ```bash
+   export OPENAI_API_KEY=<your_openai_api_key>
+   ```
+2. Start the app:
+   ```bash
+   docker compose up --build
+   ```
+3. Open [http://localhost:8501](http://localhost:8501) in your web browser
 
 ---
 
-## Rules
-- This assignment is open-ended
-- You may use any resources you like with the following restrictions
-   - They must be resources that would be available to you if you worked here (so no other humans, no closed AIs, no unlicensed code, etc.)
-   - Allowed resources include but not limited to Stack overflow, random blogs, chatGPT et al
-   - You have to be able to explain how the code works, even if chatGPT wrote it
-- DO NOT PUSH THE API KEY TO GITHUB. OpenAI will automatically delete it
+## Methodology
+- In addition to the "ages 5-10" requirement, I added that the story should be rated "PG", to provide a reference point to a common content maturity standard for the LLM to reference. 
+- According to [BookFox](https://thejohnfox.com/2023/08/whats-the-perfect-length-for-a-childrens-picture-book/), the ideal length for a picture book is 500-800 words, so I'll use this for our bedtime story word count range. 
+- I tested first on gemma, Google's open source model, and then on ChatGPT-3.5-turbo via the API to optimize on costs
+   -Total Open AI API Usage: 1211 input tokens + 707 output tokens (~$.0017) [pricing](https://openrouter.ai/openai/gpt-3.5-turbo)
 
----
+# Story Arc Planner + Judge System Architecture
 
-## What does "tell a story" mean?
-It should be appropriate for ages 5-10. Other than that it's up to you. Here are some ideas to help get the brain-juices flowing!
-- Use story arcs to tell better stories
-- Allow the user to provide feedback or request changes
-- Categorize the request and use a tailored generation strategy for each category
+## Block Diagram
 
----
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           BEDTIME STORY GENERATOR                           │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-## How will I be evaluated
-Good question. We want to know the following:
-- The efficacy of the system you design to create a good story
-- Are you comfortable using and writing a python script
-- What kinds of prompting strategies and agent design strategies do you use
-- Are the stories your tool creates good?
-- Can you understand and deconstruct a problem
-- Can you operate in an open-ended environment
-- Can you surprise us
+                              ┌───────────────┐
+                              │     USER      │
+                              │   (Request)   │
+                              └───────┬───────┘
+                                      │
+                                      │ "A story about a brave turtle 
+                                      │  who wants to fly"
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            PLANNING PHASE                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                        STORY PLANNER                                │    │
+│  │                         (LLM Agent)                                 │    │
+│  │                                                                     │    │
+│  │  Input:  User's story request                                       │    │
+│  │  Output: Structured outline (JSON)                                  │    │
+│  │          - Title, Setting, Characters                               │    │
+│  │          - Beginning, Rising Action, Climax, Resolution             │    │
+│  │          - Moral/Lesson                                             │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ Story Outline
+                                      ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           GENERATION PHASE                                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         STORYTELLER                                 │   │
+│  │                         (LLM Agent)                                 │   │
+│  │                                                                     │   │
+│  │  Input:  Story outline OR (story + feedback for refinement)         │   │
+│  │  Output: Complete bedtime story (400-600 words)                     │   │
+│  │          - Age-appropriate vocabulary                               │   │
+│  │          - Engaging dialogue                                        │   │
+│  │          - Sensory details                                          │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ Story Draft
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           EVALUATION PHASE                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                          LLM JUDGE                                  │    │
+│  │                         (LLM Agent)                                 │    │
+│  │                                                                     │    │
+│  │  Input:  Generated story                                            │    │
+│  │  Output: Evaluation scores (1-10) + feedback                        │    │
+│  │          - Age Appropriateness                                      │    │
+│  │          - Engagement                                               │    │
+│  │          - Story Structure                                          │    │
+│  │          - Moral/Lesson                                             │    │
+│  │          - Overall Score                                            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                          ┌───────────┴───────────┐
+                          │                       │
+                    Score >= 7.0            Score < 7.0
+                     (PASS)                  (REFINE)
+                          │                       │
+                          ▼                       │
+                 ┌─────────────┐                  │
+                 │ FINAL STORY │                  │
+                 │   OUTPUT    │                  │
+                 └─────────────┘                  │
+                                                  │
+                          ┌───────────────────────┘
+                          │ Feedback
+                          ▼
+                 ┌─────────────────┐
+                 │   REFINEMENT    │
+                 │     LOOP        │──────────────┐
+                 │ (max 2 passes)  │              │
+                 └─────────────────┘              │
+                          │                       │
+                          └───────────────────────┘
+                                 Back to Storyteller
+```
 
----
+## Data Flow Summary
 
-## Other FAQs
-- How long should I spend on this? 
-No more than 2-3 hours
-- Can I change what the input is? 
-Sure
-- How long should the story be?
-You decide
+```text
+┌──────────┐    ┌─────────┐    ┌─────────────┐    ┌───────┐    ┌────────┐
+│   USER   │───▶│ PLANNER │───▶│ STORYTELLER │───▶│ JUDGE │───▶│ OUTPUT │
+└──────────┘    └─────────┘    └─────────────┘    └───────┘    └────────┘
+  Request        Outline          Story            Eval         Final
+                 (JSON)           Draft           Scores        Story
+                                    ▲               │
+                                    │   Feedback    │
+                                    └───────────────┘
+                                      (if score < 7)
+```
+
+## Component Responsibilities
+
+| Component   | Role                                      |
+|-------------|-------------------------------------------|
+| Planner     | Creates structured story outline          |
+| Storyteller | Generates/refines the narrative           |
+| Judge       | Evaluates quality, provides feedback      |
+
+## Files
+
+| File                  | Description                                    |
+|-----------------------|------------------------------------------------|
+| `main.py`             | CLI entry point and story generation pipeline  |
+| `app/web.py`          | Streamlit web UI                               |
+| `app/prompts.py`      | All prompt templates for each agent            |
+| `app/story_engine.py` | StoryPlanner, Storyteller, Judge classes       |
+| `app/models.py`       | LLM provider integrations                      |
+| `app/story_output.py` | Story text cleanup and title parsing           |
+
+## Evaluation Criteria
+
+The Judge evaluates each story on:
+
+1. **Age Appropriateness (1-10)**: Vocabulary, themes, no scary content
+2. **Engagement (1-10)**: Fun, interesting, captivating for children
+3. **Story Structure (1-10)**: Clear beginning, middle, climax, resolution
+4. **Moral/Lesson (1-10)**: Gentle, positive takeaway
+
+**Pass Threshold**: Overall score >= 7.0
