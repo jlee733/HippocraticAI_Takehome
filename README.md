@@ -1,4 +1,4 @@
-# Hippocratic AI Coding Assignment
+# StorytellerAI
 
 This bedtime story generator app uses a multi-agent LLM pipeline to create high-quality, age-appropriate stories for children ages 5-10.
 
